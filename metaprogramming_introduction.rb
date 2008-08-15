@@ -2,19 +2,11 @@ require 'rubygems'
 require 'test/unit'
 require 'spec'
 
+# This stuff will be removed once I get the whole thing switched over to Rspec
 def show string, &block
   define_method "test_#{string}", &block
 end
 
-def assert_true arg
-  assert_equal true, arg
-end
-
-def assert_false arg
-  assert_equal false, arg
-end
-
-# class MetaprogrammingIntroduction < Test::Unit::TestCase
 describe "Ruby Metaprogramming" do
 
 =begin
