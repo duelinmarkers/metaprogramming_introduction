@@ -1,11 +1,6 @@
 require 'rubygems'
-require 'test/unit'
+gem 'rspec'
 require 'spec'
-
-# This will be removed once I get the whole thing switched over to Rspec
-def show string, &block
-  define_method "test_#{string}", &block
-end
 
 describe "Ruby Metaprogramming" do
 
@@ -89,7 +84,7 @@ This next one may seem obvious, but it'll only take a moment.
       # Object#extend mixes a module into an instance without affecting other 
       # instances of the same class.
     
-      assert(o.is_a?(Enumerable) && {}.is_a?(Enumerable))
+      o.should be_a_kind_of(Enumerable)
     
       hash = {}
       Enumerable.class_eval do
@@ -127,12 +122,12 @@ as it could bite you at some point.
       @count_for_all.should be_nil
       next_integer_for_all.should == 1
       @count_for_all.should == 1
-    
+      
       # Classes are Objects too, so they've all gained a class method, which
       # maintains a count independent from its instances.
-      assert_equal 1, String.next_integer_for_all
-      assert_equal 2, String.next_integer_for_all
-      assert_equal 1, "".next_integer_for_all
+      String.next_integer_for_all.should == 1
+      String.next_integer_for_all.should == 2
+      "".next_integer_for_all.should == 1
     end
   end
 =begin
@@ -167,14 +162,14 @@ simple way, this looks like the following:
   end
 =begin
 So that's neat, but what if we want some of the power of Module#define_method
-discussed earlier? What module or class should define_method to add a method to
-just one object? The singleton class!
+discussed earlier? What module or class can we call define_method on to add a 
+method to just one object? The singleton class!
 
-Classes and Modules are special objects with method tables that hold methods for other objects
-to respond to. It would have been a shame for Matz to have had to implement
-another sort of method owning facility to handle singleton methods, so Ruby does
+Classes and Modules are special objects with method tables that hold methods for 
+other objects to respond to. It would have been a shame for Matz to have had to 
+implement another method table facility for singleton methods, so Ruby does
 some hidden trickery when we define a method on an instance: it creates a
-virtual class to hold methods specific to that object, inserting it into the
+'virtual class' to hold methods specific to that object, inserting it into the
 chain of classes that will be checked for methods when it's looking to handle a
 message sent to the object. The object's Object#class method will still return the
 original class, but the singleton class actually gets "first dibs" at responding
@@ -287,21 +282,20 @@ method on Object that returns the receiver's singleton class, then dig in with s
       {}.singleton_class.should_not == {}.singleton_class
     end
     
-    show "The singleton class instance of a class is the superclass of the
-    singleton class instances of instances of that class.  Phew!" do
-      assert_same( {}.singleton_class.superclass, Hash.singleton_class)
+    it "of a class is the superclass of singleton classes of instances of that class.  Phew!" do
+      {}.singleton_class.superclass.should == Hash.singleton_class
     end
 =begin
 I can't think of any reason that's useful, but there it is.  The same goes for
 singleton classes of classes (true metaclasses).
 =end
-  show "Same diff when the instance in question is a class." do
-    assert_same Hash.singleton_class.superclass, Class.singleton_class
-  end
+    it "works the same way when the instance in question is a class" do
+      Hash.singleton_class.superclass.should == Class.singleton_class
+    end
   
-  show "Bizarrely, same diff even when the instance in question is Class 
-  itself!" do
-    assert_same Class.singleton_class.superclass, Class.singleton_class
+    it "works the same even when the instance in question is Class itself!" do
+      Class.singleton_class.superclass.should == Class.singleton_class
+    end
   end
 =begin
 Right this moment, it appears the inheritance chain of singleton classes may
@@ -312,22 +306,21 @@ changes in play for Ruby 1.9:
 Anyway, back to what we were trying to do: use Module#define_method to create a
 singleton method.
 =end
-  show "Calling define method on a singleton class creates a singleton 
-  method." do
+  specify "Calling define method on a singleton class creates a singleton method." do
     o = Object.new
     
-    assert_equal 0, o.singleton_methods.size
+    o.singleton_methods.should be_empty
     
     o.singleton_class.send :define_method, :countdown do
-      (@numbers ||= (1..3).to_a.reverse.push('POW!')).shift
+      (@numbers ||= [3, 2, 1, 'POW!']).shift
     end
     
-    assert_equal ['countdown'], o.singleton_methods
-    assert_raises(NoMethodError) { Object.new.countdown }
-    assert_equal 3, o.countdown
-    assert_equal 2, o.countdown
-    assert_equal 1, o.countdown
-    assert_equal 'POW!', o.countdown
+    o.singleton_methods.should == ['countdown']
+    lambda { Object.new.countdown }.should raise_error(NoMethodError)
+    o.countdown.should == 3
+    o.countdown.should == 2
+    o.countdown.should == 1
+    o.countdown.should == 'POW!'
   end
 =begin
 I'm surprised that Matz didn't put a method on Object called
@@ -347,16 +340,16 @@ Let's create that method now.
 This is functionally equivalent to _why's meta_def method, but that name bugs
 me a lot, so I'm not using it.
 =end
-  show "Use of our newly created Object#define_singleton_method to create a
+  specify "Use of our newly created Object#define_singleton_method to create a
   singleton method without ever seeing the singleton class." do
     o = Object.new
     o.define_singleton_method :get_excited do
       @excitation_rant = (@excitation_rant || "I'm getting excited.").gsub(/excited/, "really excited")
     end
     
-    assert_equal "I'm getting really excited.", o.get_excited
-    assert_equal "I'm getting really really excited.", o.get_excited
-    assert_equal "I'm getting really really really excited.", o.get_excited
+    o.get_excited.should == "I'm getting really excited."
+    o.get_excited.should == "I'm getting really really excited."
+    o.get_excited.should == "I'm getting really really really excited."
   end
 =begin
 With the ability to dynamically define methods on classes and instances at
@@ -373,5 +366,4 @@ this write-up, please leave comments on Practical Ruby
 Thanks to a whole bunch of people for useful feedback, particularly: Jay Fields,
 Z, Chris George, Ali Aghereza, and Omar Ghaffar.
 =end
-end
 end
