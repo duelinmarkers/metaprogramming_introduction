@@ -11,16 +11,18 @@ Once it's all translated I may put it out as a nicely readable blog post again, 
 now it'll just live here in Git. Chances are it reads better in your editor of choice 
 than on a web page anyway.
 
-As I'm currently midstream on moving from Test::Unit + extensions to Rspec, things are 
-a bit messy. You might prefer to read the originally published version at this URL:
+The originally published version can be viewed on GitHub at this URL:
 
 http://github.com/duelinmarkers/metaprogramming_introduction/tree/9cd27dd8571b4428ef791ffa53646f4dd799b573
 
-If you're running the latest version, you can't run it via Rspec's "spec" executable at 
-the moment, since I'm still relying on some Test::Unit stuff. For now, stick with this 
-if you want to run it from the command line, though the output will be unimpressive:
+You can run the current version with
 
   ruby metaprogramming_introduction.rb
+
+or if you want to make it output-heavy
+
+  spec -f specdoc metaprogramming_introduction.rb
+
 
 
 --------
