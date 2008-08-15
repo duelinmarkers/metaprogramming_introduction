@@ -21,3 +21,9 @@ the moment, since I'm still relying on some Test::Unit stuff. For now, stick wit
 if you want to run it from the command line, though the output will be unimpressive:
 
   ruby metaprogramming_introduction.rb
+
+
+--------
+Copyright John D. Hume
+Released under a Creative Commons Attribution-Share Alike 3.0 license
+http://creativecommons.org/licenses/by-sa/3.0/
