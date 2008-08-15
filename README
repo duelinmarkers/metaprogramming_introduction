@@ -1,0 +1,9 @@
+A Ruby Metaprogramming Introduction is an article in Ruby source code form.
+
+Read and run metaprogramming_introduction.rb.
+
+It was originally published on the Practical Ruby blog. A while back though I started 
+updating it to be more useful and translating it to use Rspec instead of the funny 
+little Test::Unit extension (since Rspec reads just as well but is more likely to be 
+familiar to a reader). Once it's all translated I may put it out as a nicely readable 
+blog post again, but for now it'll just live here in Git.
