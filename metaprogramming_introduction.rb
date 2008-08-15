@@ -2,7 +2,7 @@ require 'rubygems'
 require 'test/unit'
 require 'spec'
 
-# This stuff will be removed once I get the whole thing switched over to Rspec
+# This will be removed once I get the whole thing switched over to Rspec
 def show string, &block
   define_method "test_#{string}", &block
 end
@@ -282,38 +282,38 @@ method on Object that returns the receiver's singleton class, then dig in with s
       hash.singleton_class.should be_an_instance_of(Class)
       hash.singleton_class.should_not == hash.class
     end
-  
+    
     it "is not shared by instances" do
       {}.singleton_class.should_not == {}.singleton_class
     end
-puts "leftoff here"
-    show "<span style='font-weight:bolder'>The singleton class instance of a class is the superclass of the
-    singleton class instances of instances of that class.  Phew!</span>" do
+    
+    show "The singleton class instance of a class is the superclass of the
+    singleton class instances of instances of that class.  Phew!" do
       assert_same( {}.singleton_class.superclass, Hash.singleton_class)
     end
 =begin
 I can't think of any reason that's useful, but there it is.  The same goes for
 singleton classes of classes (true metaclasses).
 =end
-  show "<span style='font-weight:bolder'>Same diff when the instance in question is a class.</span>" do
+  show "Same diff when the instance in question is a class." do
     assert_same Hash.singleton_class.superclass, Class.singleton_class
   end
   
-  show "<span style='font-weight:bolder'>Bizarrely, same diff even when the instance in question is Class 
-  itself!</span>" do
+  show "Bizarrely, same diff even when the instance in question is Class 
+  itself!" do
     assert_same Class.singleton_class.superclass, Class.singleton_class
   end
 =begin
 Right this moment, it appears the inheritance chain of singleton classes may
 change in the next version of Ruby. See this relatively awesome distillation of
 changes in play for Ruby 1.9:
-  <a href="http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9" >http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9</a>
+  http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9
 
 Anyway, back to what we were trying to do: use Module#define_method to create a
 singleton method.
 =end
-  show "<span style='font-weight:bolder'>Calling define method on a singleton class creates a singleton 
-  method.</span>" do
+  show "Calling define method on a singleton class creates a singleton 
+  method." do
     o = Object.new
     
     assert_equal 0, o.singleton_methods.size
@@ -347,8 +347,8 @@ Let's create that method now.
 This is functionally equivalent to _why's meta_def method, but that name bugs
 me a lot, so I'm not using it.
 =end
-  show "<span style='font-weight:bolder'>Use of our newly created Object#define_singleton_method to create a
-  singleton method without ever seeing the singleton class.</span>" do
+  show "Use of our newly created Object#define_singleton_method to create a
+  singleton method without ever seeing the singleton class." do
     o = Object.new
     o.define_singleton_method :get_excited do
       @excitation_rant = (@excitation_rant || "I'm getting excited.").gsub(/excited/, "really excited")
