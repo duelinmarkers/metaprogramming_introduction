@@ -1,27 +1,31 @@
 A Ruby Metaprogramming Introduction is an article in Ruby source code form.
 
-Read and run metaprogramming_introduction.rb.
-
-It was originally published on the Practical Ruby blog. A while back though I started 
-updating it to be more useful and translating it to use Rspec instead of the funny 
-little Test::Unit extension (since Rspec reads just as well but is more likely to be 
-familiar to a reader). 
-
-Once it's all translated I may put it out as a nicely readable blog post again, but for 
-now it'll just live here in Git. Chances are it reads better in your editor of choice 
-than on a web page anyway.
-
-The originally published version can be viewed on GitHub at this URL:
-
-http://github.com/duelinmarkers/metaprogramming_introduction/tree/9cd27dd8571b4428ef791ffa53646f4dd799b573
-
-You can run the current version with
+Read and run metaprogramming_introduction.rb. 
 
   ruby metaprogramming_introduction.rb
 
 or if you want to make it output-heavy
 
   spec -f specdoc metaprogramming_introduction.rb
+
+(The reading is the point. The running is only there to either reassure you
+that what I tell you is true, or show you that it's not, in which case I hope
+you'll let me know what version of Ruby you're running and other platformey
+goodies.)
+
+A version of this was originally published on the Practical Ruby blog. A while
+back though I started updating it to be more useful and translating it to use
+Rspec instead of the funny little Test::Unit extension (since Rspec reads just
+as well but is more likely to be familiar to a reader).
+
+Once it's all good and clever and readable I may put it out as a nicely
+readable blog post again, but for now it'll just live here in Git. Chances are
+it reads better in your editor of choice than on a web page anyway.
+
+The originally published version can be viewed on GitHub at this URL:
+
+http://github.com/duelinmarkers/metaprogramming_introduction/tree/9cd27dd8571b4428ef791ffa53646f4dd799b573
+
 
 
 
