@@ -14,7 +14,7 @@ methods in this article. This is only to reduce the scope of what's explained.
 In practice I'd prefer module_eval or class_eval to reopening of classes or
 modules or use of Object#send to invoke private methods.
 
-Chapter 24 in the Pickaxe is your reference for the nuts and bolts of Ruby
+Chapter 24 in the Pickaxe is an ok reference for the nuts and bolts of Ruby
 classes. There's surprisingly little discussion of things you can do with
 metaprogramming, but all the information you need is there. _why the lucky
 stiff's Seeing Metaclasses Clearly is dense and opaque, but fun:
@@ -35,7 +35,7 @@ stiff's Seeing Metaclasses Clearly is dense and opaque, but fun:
       GuineaPig.new.next_integer.should == 1
     end
 =begin
-This isn't all that cool, as we could have defined next_integer using the def
+That's nothing special, since we could have defined next_integer using the def
 keyword. But Module#define_method allows us to do a couple of things the def
 keyword doesn't. 
 
@@ -363,11 +363,12 @@ runtime, you have the tools needed for some pretty interesting metaprogramming.
 Have fun with it, just keep an eye on the developers around you to see if you're
 going too meta on them.
 
+
+
 ---
 
 If you have any comments, questions, suggestions, corrections, or additions for
-this write-up, please leave comments on Practical Ruby
-(http://practicalruby.blogspot.com/).
+this write-up, please contact me via my blog, http://elhumidor.blogspot.com/.
 
 Thanks to a whole bunch of people for useful feedback, particularly: Jay Fields,
 Z, Chris George, Ali Aghereza, and Omar Ghaffar.
