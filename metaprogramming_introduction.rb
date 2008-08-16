@@ -5,20 +5,23 @@ require 'spec'
 describe "Ruby Metaprogramming" do
 
 =begin
-This is a demonstration of dynamic method definition using the private method
-Module#define_method and an introduction to singleton classes (also known as
-metaclasses). These form the basis of Ruby metaprogramming.
+
+This is a demonstration of the basic Ruby functionality used in metaprogramming.
+It will cover dynamic method definition using Module#define_method, look at
+singleton classes (also known as metaclasses), and demonstrate use of class
+methods as macros.
 
 Note that I'm going to avoid use or discussion of Ruby's very important eval
 methods in this article. This is only to reduce the scope of what's explained.
 In practice I'd prefer module_eval or class_eval to reopening of classes or
 modules or use of Object#send to invoke private methods.
 
-Chapter 24 in the Pickaxe is an ok reference for the nuts and bolts of Ruby
+Chapter 24 in the Pickaxe is a good reference for the nuts and bolts of Ruby
 classes. There's surprisingly little discussion of things you can do with
 metaprogramming, but all the information you need is there. _why the lucky
 stiff's Seeing Metaclasses Clearly is dense and opaque, but fun:
   http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
+
 =end
   describe "using Module#define_method" do
     it "allows you to add an instance method to both new and existing instances of the receiving module" do
@@ -35,6 +38,7 @@ stiff's Seeing Metaclasses Clearly is dense and opaque, but fun:
       GuineaPig.new.next_integer.should == 1
     end
 =begin
+
 That's nothing special, since we could have defined next_integer using the def
 keyword. But Module#define_method allows us to do a couple of things the def
 keyword doesn't. 
@@ -48,6 +52,7 @@ in your context.
 
 The second interesting aspect of using define_method is that you pass it a
 block, Ruby's closure.
+
 =end
     it "allows method bodies to close over local variables" do
       GuineaCounter = Class.new
@@ -69,15 +74,27 @@ block, Ruby's closure.
       second_counter.double_count.should == [4, 2]
     end
 =begin
+
 Even after the method that defined the local variable shared_count completes
 execution, the method in GuineaCounter will still be bound to the context of the
 method, which lives on thanks to those bindings. 
 
-Note that the binding to local variables is independent of the value of self when the method is executed (and therefore the object where instance variables are stored).  This can be confusing, since the code in that block doesn't quite work like code defined in a normal method (e.g., it can see and reassign the local shared_count variable from the surrounding local binding) but doesn't quite work like normal "local" code (e.g., when it sets the @count instance variable, the variable lands in the receiver of the method).
+Note that the binding to local variables is independent of the value of self when
+the method is executed (and therefore the object where instance variables are
+stored). This can be confusing, since the code in that block doesn't quite work
+like code defined in a normal method (e.g., it can see and reassign the local
+shared_count variable from the surrounding local binding) but doesn't quite work
+like normal "local" code (e.g., when it sets the @count instance variable, the
+variable lands in the receiver of the method).
 
-Note the use of Module#class_eval (alias Module#module_eval) to invoke define_method, where we just reopened the class in earlier demonstrations. This is necessary if we want the block to bind to our local context.  (Use of the class keyword to define or reopen a class establishes a whole new binding.)  You can also use Object#send, but I always prefer class_eval.
+Note the use of Module#class_eval (alias Module#module_eval) to invoke
+define_method, where we just reopened the class in earlier demonstrations. This is
+necessary if we want the block to bind to our local context. (Use of the class
+keyword to define or reopen a class establishes a whole new binding.) You can also
+use Object#send, but I always prefer class_eval.
 
 This next one may seem obvious, but it'll only take a moment.
+
 =end
     it "works the same way with modules as it does with classes" do
       o = Object.new.extend(Enumerable)
@@ -102,8 +119,10 @@ This next one may seem obvious, but it'll only take a moment.
     end
   end
 =begin
+
 This next point is something of a tangent, but it's important to keep in mind,
 as it could bite you at some point.
+
 =end
   describe "adding methods to Object" do
     it "makes them available on EVERY receiver, so be careful" do
@@ -131,6 +150,7 @@ as it could bite you at some point.
     end
   end
 =begin
+
 This isn't mind-blowing, but it can be easy to accidentally call the method with
 the wrong receiver if you lose track of your current context.
 
@@ -145,6 +165,7 @@ Above, we used Object#extend to mix a module into one instance of Object without
 affecting other instances or the Object class itself. You've probably also seen
 that Ruby allows you to define methods on just single instances. When done the
 simple way, this looks like the following:
+
 =end
   describe "basic singleton method definition" do
     it "uses the def keyword to create methods on object instances" do
@@ -161,15 +182,16 @@ simple way, this looks like the following:
     end
   end
 =begin
+
 So that's neat, but what if we want some of the power of Module#define_method
 discussed earlier? What module or class can we call define_method on to add a 
 method to just one object? The singleton class!
 
 Classes and Modules are special objects with method tables that hold methods for 
 other objects to respond to. It would have been a shame for Matz to have had to 
-implement another method table facility for singleton methods, so Ruby does
+implement another method table facility to support singleton methods, so Ruby does
 some hidden trickery when we define a method on an instance: it creates a
-'virtual class' to hold methods specific to that object, inserting it into the
+hidden class to hold methods specific to that object, inserting it into the
 chain of classes that will be checked for methods when it's looking to handle a
 message sent to the object. The object's Object#class method will still return the
 original class, but the singleton class actually gets "first dibs" at responding
@@ -190,6 +212,7 @@ How unusual is it for singleton classes to come into play? It happens far more
 frequently than we think about them, because all class methods are actually
 singleton methods of instances of Class. Here's a simple class with a couple
 class methods.
+
 =end
   class Greeter
     def greet; 'hello!'; end
@@ -203,11 +226,13 @@ class methods.
     'Actually, saying hello pretty much covers it.'
   end
 =begin
+
 Notice how similar the second and third method definitions look to our singleton
 method definition above. That's not a coincidence: describe_greeting and
 say_more are both singleton methods of the object Greeter, an instance of the
 class Class. These methods are both held in Greeter's singleton class, the first
 place Ruby looks for methods when Greeter receives a message.
+
 =end
   describe "A class method" do
     it "is really just a singleton method of an instances of Class" do
@@ -215,12 +240,14 @@ place Ruby looks for methods when Greeter receives a message.
     end
   end
 =begin
+
 Once you digest it, this hidden consistency makes it much easier to keep track
 of what's going on in Ruby.
 
 Now, we said above that singleton classes are hidden. How do we get at them?
 Ruby gives us just one way in: the "class double-ell." Let's use this to add a
 singleton method to a Greeter.
+
 =end
   describe "'class double-ell'" do
     it "gets us into the definition of an object's singleton class" do
@@ -235,11 +262,19 @@ singleton method to a Greeter.
       lambda { jane.greet_enthusiastically }.should raise_error(NoMethodError)
     end
 =begin
-Think of the "class << object" syntax as reopening a class just like normal uses of the class keyword.  It just happens that here you're reopening a class that you can't get a hold of any other way.  (Ruby generates singleton classes on demand, so each object gets one just as soon as you want to use it.  You may read or hear people say that every object has a singleton class.  Though it's not strictly true, it's true enough, since Ruby makes sure you can't ever look for an object's singleton class and not find it.)
+
+Think of the "class << object" syntax as reopening a class just like normal uses of
+the class keyword. It just happens that here you're reopening a class that you can't
+get a hold of any other way. (Ruby generates singleton classes on demand, so each
+object gets one just as soon as you want to use it. You may read or hear people say
+that every object has a singleton class. Though it's not strictly true, it's true
+enough, since Ruby makes sure you can't ever look for an object's singleton class
+and not find it.)
 
 So "class << self" is a third way to create class methods.
 It's the only one that allows Ruby's visibility modifiers to work the way
 they're normally used for instance methods (annotation-style).
+
 =end
     it "can be used to create non-public class methods" do
       class Greeter
@@ -342,7 +377,7 @@ macros to define instance methods. For example:
   end
 
 That one call to #attr_accessor just generated six instance methods in Person. Although
-attr_accessor is baked into Ruby (as in instance method of Module), it's not doing
+attr_accessor is baked into Ruby (as an instance method of Module), it's not doing
 anything we can't do ourselves. Rails' ActiveSupport, for example, adds similar methods
 called mattr_accessor and cattr_accessor to Module and Class respectively. (They just 
 read and write class variables instead of instance variables.)
