@@ -281,34 +281,8 @@ method on Object that returns the receiver's singleton class, then dig in with s
     it "is not shared by instances" do
       {}.singleton_class.should_not == {}.singleton_class
     end
-    
-    it "of a class is the superclass of singleton classes of instances of that class.  Phew!" do
-      {}.singleton_class.superclass.should == Hash.singleton_class
-    end
-=begin
-I can't think of any reason that's useful, but there it is.  The same goes for
-singleton classes of classes (true metaclasses).
-=end
-    it "works the same way when the instance in question is a class" do
-      Hash.singleton_class.superclass.should == Class.singleton_class
-    end
-  
-    it "works the same even when the instance in question is Class itself!" do
-      Class.singleton_class.superclass.should == Class.singleton_class
-    end
   end
 =begin
-If you're looking at that and thinking it means weird things for method dispatch 
-(like "wait, then how do classes inherit class methods?") all I can tell you at 
-the moment is that the superclass method on singleton classes does a very weird 
-thing, and you shouldn't use it to try to understand anything. I will elaborate 
-in a future revision.
-
-Right this moment, it appears the inheritance chain of singleton classes may
-change in the next version of Ruby. See this relatively awesome distillation of
-changes in play for Ruby 1.9:
-  http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9
-
 Anyway, back to what we were trying to do: use Module#define_method to create a
 singleton method.
 =end
@@ -358,10 +332,109 @@ me a lot, so I'm not using it.
     o.get_excited.should == "I'm getting really really really excited."
   end
 =begin
-With the ability to dynamically define methods on classes and instances at
-runtime, you have the tools needed for some pretty interesting metaprogramming.
-Have fun with it, just keep an eye on the developers around you to see if you're
-going too meta on them.
+Now we know how to conveniently and dynamically define methods on classes and instances
+at runtime. How can we use that to do something powerful? The most common case of
+metaprogramming the Rubyist runs into on a daily basis is the use of class methods as
+macros to define instance methods. For example:
+
+  class Person
+    attr_accessor :first_name, :last_name, :favorite_color
+  end
+
+That one call to #attr_accessor just generated six instance methods in Person. Although
+attr_accessor is baked into Ruby (as in instance method of Module), it's not doing
+anything we can't do ourselves. Rails' ActiveSupport, for example, adds similar methods
+called mattr_accessor and cattr_accessor to Module and Class respectively. (They just 
+read and write class variables instead of instance variables.)
+
+So that's fine if we want to enhance every class or module under the sun with some new
+macro, but chances are we don't. ActiveRecord, for example, exposes these great macros
+for associations (has_one, has_many, belongs_to, etc), and it's sane enough to expose
+them in your ActiveRecord::Base subclasses. So obviously the inheritance hierarchy is
+taking care of this for us. Let's see what it looks like.
+=end
+  describe "#superclass on a singleton class" do
+    it "returns the singleton class of the class the original object is an instance of" do
+      {}.singleton_class.superclass.should == Hash.singleton_class
+    end
+=begin
+That doesn't seem useful, but there it is.  But we're really after macros in classes, so
+let's look at a singleton class of a class (a true metaclass).
+=end
+    it "works the same way when the instance in question is a class" do
+      class Foo; end
+      Foo.singleton_class.superclass.should == Class.singleton_class
+      class Bar < Foo; end
+      Bar.singleton_class.superclass.should == Class.singleton_class
+    end
+  end
+=begin
+WTF!? If B's singleton class's superclass is Class's singleton class instead of A's,
+B isn't going to inherit class methods from A. So how does ActiveRecord make this work?
+
+The answer is that the #superclass method is a damn dirty liar when the receiver is a
+singleton class. In fact, B's singleton class's superclass really is A's singleton class.
+(I should probably say "B's singleton class's super pointer really points at A's
+singleton class.")
+
+  Note: I believe Ruby 1.9 changes the behavior of the superclass method on singleton
+  classes to reflect reality, but I haven't had a chance to look at it myself. You may 
+  find helpful information here:
+    http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9
+
+Let's see some class methods get inherited.
+=end
+  describe "Inheritance of class methods" do
+    it "works" do
+      class A
+        def self.say_hi; 'hi'; end
+      end
+
+      class B < A; end
+
+      B.say_hi.should == 'hi'
+    end
+=begin
+Because the subclass is the receiver, the inherited class method can write new instance
+methods into the subclass.
+=end
+    it "allows you to define inherited macro methods" do
+      class A
+        def self.has_a_fondness_for *things
+          things.each {|thing| define_method("fond_of_#{thing}?") { true } }
+        end
+      end
+=begin
+Note that the define_method call has self as the implicit receiver. So whatever subclass
+is sent the has_a_fondness_for method, it will be the one that gets the defined instance
+methods.
+=end
+      class B < A
+        has_a_fondness_for :grapes, :granola, :guacamole
+      end
+      
+      b = B.new
+      b.fond_of_grapes?.should == true
+      # or in easier to read Rspec style
+      b.should be_fond_of_grapes
+      b.should be_fond_of_granola
+      b.should be_fond_of_guacamole
+=begin
+And just to be clear that the behavior lands only where we want it ...
+=end
+      class C < A
+        has_a_fondness_for :cheese
+      end
+      
+      c = C.new
+      c.should be_fond_of_cheese
+      lambda { c.fond_of_grapes? }.should raise_error(NoMethodError)
+      lambda { b.fond_of_cheese? }.should raise_error(NoMethodError)
+    end
+  end
+=begin
+So that's a crash course in Ruby metaprogramming. Have fun with it, just keep an eye on 
+the developers around you to see if you're going too meta on them.
 
 
 
