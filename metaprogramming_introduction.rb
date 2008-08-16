@@ -298,6 +298,12 @@ singleton classes of classes (true metaclasses).
     end
   end
 =begin
+If you're looking at that and thinking it means weird things for method dispatch 
+(like "wait, then how do classes inherit class methods?") all I can tell you at 
+the moment is that the superclass method on singleton classes does a very weird 
+thing, and you shouldn't use it to try to understand anything. I will elaborate 
+in a future revision.
+
 Right this moment, it appears the inheritance chain of singleton classes may
 change in the next version of Ruby. See this relatively awesome distillation of
 changes in play for Ruby 1.9:
