@@ -294,8 +294,10 @@ they're normally used for instance methods (annotation-style).
     end
   end
 =begin
+
 Now let's make these singleton classes easier to get to. We'll create an instance
 method on Object that returns the receiver's singleton class, then dig in with some examples about how they work.
+
 =end
   class Object 
     def singleton_class
@@ -318,8 +320,10 @@ method on Object that returns the receiver's singleton class, then dig in with s
     end
   end
 =begin
+
 Anyway, back to what we were trying to do: use Module#define_method to create a
 singleton method.
+
 =end
   specify "Calling define method on a singleton class creates a singleton method." do
     o = Object.new
@@ -338,12 +342,14 @@ singleton method.
     o.countdown.should == 'POW!'
   end
 =begin
+
 I'm surprised that Matz didn't put a method on Object called
 define_singleton_method, allowing us to do the same thing we did above without
 exposing singleton classes. To me they feel like an implementation detail we
 shouldn't have needed to see.
 
 Let's create that method now.
+
 =end
   class ::Object
     def define_singleton_method name, &body
@@ -352,8 +358,10 @@ Let's create that method now.
     end
   end
 =begin
+
 This is functionally equivalent to _why's meta_def method, but that name bugs
 me a lot, so I'm not using it.
+
 =end
   specify "Use of our newly created Object#define_singleton_method to create a
   singleton method without ever seeing the singleton class." do
@@ -367,6 +375,7 @@ me a lot, so I'm not using it.
     o.get_excited.should == "I'm getting really really really excited."
   end
 =begin
+
 Now we know how to conveniently and dynamically define methods on classes and instances
 at runtime. How can we use that to do something powerful? The most common case of
 metaprogramming the Rubyist runs into on a daily basis is the use of class methods as
@@ -387,14 +396,17 @@ macro, but chances are we don't. ActiveRecord, for example, exposes these great 
 for associations (has_one, has_many, belongs_to, etc), and it's sane enough to expose
 them in your ActiveRecord::Base subclasses. So obviously the inheritance hierarchy is
 taking care of this for us. Let's see what it looks like.
+
 =end
   describe "#superclass on a singleton class" do
     it "returns the singleton class of the class the original object is an instance of" do
       {}.singleton_class.superclass.should == Hash.singleton_class
     end
 =begin
+
 That doesn't seem useful, but there it is.  But we're really after macros in classes, so
 let's look at a singleton class of a class (a true metaclass).
+
 =end
     it "works the same way when the instance in question is a class" do
       class Foo; end
@@ -404,6 +416,7 @@ let's look at a singleton class of a class (a true metaclass).
     end
   end
 =begin
+
 WTF!? If B's singleton class's superclass is Class's singleton class instead of A's,
 B isn't going to inherit class methods from A. So how does ActiveRecord make this work?
 
@@ -418,6 +431,7 @@ singleton class.")
     http://eigenclass.org/hiki.rb?Changes+in+Ruby+1.9
 
 Let's see some class methods get inherited.
+
 =end
   describe "Inheritance of class methods" do
     it "works" do
@@ -430,8 +444,10 @@ Let's see some class methods get inherited.
       B.say_hi.should == 'hi'
     end
 =begin
+
 Because the subclass is the receiver, the inherited class method can write new instance
 methods into the subclass.
+
 =end
     it "allows you to define inherited macro methods" do
       class A
@@ -440,9 +456,11 @@ methods into the subclass.
         end
       end
 =begin
+
 Note that the define_method call has self as the implicit receiver. So whatever subclass
 is sent the has_a_fondness_for method, it will be the one that gets the defined instance
 methods.
+
 =end
       class B < A
         has_a_fondness_for :grapes, :granola, :guacamole
@@ -450,12 +468,14 @@ methods.
       
       b = B.new
       b.fond_of_grapes?.should == true
-      # or in easier to read Rspec style
+      # or, in easier to read Rspec style,
       b.should be_fond_of_grapes
       b.should be_fond_of_granola
       b.should be_fond_of_guacamole
 =begin
+
 And just to be clear that the behavior lands only where we want it ...
+
 =end
       class C < A
         has_a_fondness_for :cheese
@@ -468,13 +488,13 @@ And just to be clear that the behavior lands only where we want it ...
     end
   end
 =begin
+
 So that's a crash course in Ruby metaprogramming. Have fun with it, just keep an eye on 
 the developers around you to see if you're going too meta on them.
 
 
 
 ---
-
 If you have any comments, questions, suggestions, corrections, or additions for
 this write-up, please contact me via my blog, http://elhumidor.blogspot.com/.
 
