@@ -89,7 +89,7 @@ variable lands in the receiver of the method).
 
 Note the use of Module#class_eval (alias Module#module_eval) to invoke
 define_method, where we just reopened the class in earlier demonstrations. This is
-necessary if we want the block to bind to our local context. (Use of the class
+necessary if we want the block to bind to the surrounding context. (Use of the class
 keyword to define or reopen a class establishes a whole new binding.) You can also
 use Object#send, but I always prefer class_eval.
 
@@ -187,18 +187,33 @@ So that's neat, but what if we want some of the power of Module#define_method
 discussed earlier? What module or class can we call define_method on to add a 
 method to just one object? The singleton class!
 
-Classes and Modules are special objects with method tables that hold methods for 
-other objects to respond to. It would have been a shame for Matz to have had to 
-implement another method table facility to support singleton methods, so Ruby does
-some hidden trickery when we define a method on an instance: it creates a
-hidden class to hold methods specific to that object, inserting it into the
-chain of classes that will be checked for methods when it's looking to handle a
-message sent to the object. The object's Object#class method will still return the
-original class, but the singleton class actually gets "first dibs" at responding
-to a message. These classes are hidden from ObjectSpace and created without calling
-Class.new, making them hard to get a hold of.
+So what's the singleton class?
 
-What do we call these things? The term 'singleton class' makes some sense, as
+Classes and Modules are special objects with method tables that hold methods for
+other objects to respond to. It would have been a shame for Matz to have had to
+implement another method table facility to support singleton methods, so Ruby does
+some hidden trickery when we define a method on an instance: it creates a hidden
+class to hold methods specific to that object, inserting it into the chain of
+classes that will be checked for methods when it's looking to handle a message
+sent to the object. The object's Object#class method will still return the
+original class, but the singleton class actually gets "first dibs" at responding
+to a message. These classes are hidden from ObjectSpace and created without
+calling Class.new, making them hard to get a hold of.
+
+Some readers might find it easier to think about singleton classes in more
+biological and psychological terms. There's a sort of silly Nature-vs-Nurture
+comparison to be made: 
+
+  An object's class is like its DNA: the behavior it's born with. Its singleton
+  class is like the maleable brain matter that can learn new behavior over the
+  course of the object's lifetime.
+
+Cheesy people sometimes say that certain objects (cars, homes, guitars) have a
+certain soul to them ... something ineffable and irrecreatable that makes these
+objects different from others. If the world is like the JVM, that's just not
+possible. But if the world is like a Ruby interpreter, objects do can have souls!
+
+Why do we call these things 'singleton classes'? First, the term makes some sense, as
 there's only one per object. This name can be confusing though, because of the
 Singleton design pattern (easily implemented in Ruby by including the stdlib
 module Singleton). The term 'metaclass' is used frequently, but it comes from
@@ -245,8 +260,8 @@ Once you digest it, this hidden consistency makes it much easier to keep track
 of what's going on in Ruby.
 
 Now, we said above that singleton classes are hidden. How do we get at them?
-Ruby gives us just one way in: the "class double-ell." Let's use this to add a
-singleton method to a Greeter.
+Ruby gives us just one way in: the "class double-ell." Let's use this to add 
+a singleton method to a Greeter.
 
 =end
   describe "'class double-ell'" do
@@ -263,15 +278,16 @@ singleton method to a Greeter.
     end
 =begin
 
-Think of the "class << object" syntax as reopening a class just like normal uses of
-the class keyword. It just happens that here you're reopening a class that you can't
-get a hold of any other way. (Ruby generates singleton classes on demand, so each
-object gets one just as soon as you want to use it. You may read or hear people say
-that every object has a singleton class. Though it's not strictly true, it's true
-enough, since Ruby makes sure you can't ever look for an object's singleton class
-and not find it.)
+I recommend you read "class << X" as "opening the singleton class of X...".
+
+(Ruby generates singleton classes on demand, so each object gets one just as soon
+as you want to use it. You may read or hear people say that every object has a 
+singleton class. Though it's not strictly true (since in principle it's turtles 
+all the way down), it's practically true, since Ruby makes sure you can't ever 
+look for a singleton class and not find it.) 
 
 So "class << self" is a third way to create class methods.
+
 It's the only one that allows Ruby's visibility modifiers to work the way
 they're normally used for instance methods (annotation-style).
 
